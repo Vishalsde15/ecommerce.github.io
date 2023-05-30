@@ -1,0 +1,332 @@
+var createError = require("http-errors");
+var express = require("express");
+var path = require("path");
+var cookieParser = require("cookie-parser");
+var logger = require("morgan");
+const { v4: uuidv4 } = require("uuid");
+const mongoose = require("mongoose");
+const prodctModel = require("./model/products");
+const categoryModel = require("./model/category");
+const formModel = require("./model/formdata");
+
+const username = "vishal";
+const password = "1234";
+const cluster = "cluster";
+const dbname = "myFirstDatabase";
+
+mongoose.connect("mongodb://localhost:27017/mydb", {
+  useNewUrlParser: true,
+  // useFindAndModify: false,
+  // useUnifiedTopology: true
+});
+
+const db = mongoose.connection;
+db.on("error", console.error.bind(console, "connection error: "));
+db.once("open", function () {
+  console.log("Connected successfully");
+});
+
+// const product = [
+//   {
+//     id: 1,
+//     category: 1,
+//     name: "Camera",
+//     img_url: "img/product-1.jpg",
+//     mrp: 499,
+//     price: 420,
+//     reviewStar: 4,
+//     noOfReviews: 455,
+//   },
+//   {
+//     id: 2,
+//     category: 2,
+//     name: "Tshirt",
+//     img_url: "img/product-2.jpg",
+//     mrp: 99,
+//     price: 60,
+//     reviewStar: 5,
+//     noOfReviews: 885,
+//   },
+//   {
+//     id: 3,
+//     category: 3,
+//     name: "Table Lamp",
+//     img_url: "img/product-3.jpg",
+//     mrp: 149,
+//     price: 120,
+//     reviewStar: 3,
+//     noOfReviews: 576,
+//   },
+//   {
+//     id: 4,
+//     category: 4,
+//     name: "Nike shoes",
+//     img_url: "img/product-4.jpg",
+//     mrp: 399,
+//     price: 349,
+//     reviewStar: 5,
+//     noOfReviews: 986,
+//   },
+//   {
+//     id: 5,
+//     category: 1,
+//     name: "DJI mavic pro drone",
+//     img_url: "img/product-5.jpg",
+//     mrp: 1399,
+//     price: 1249,
+//     reviewStar: 4,
+//     noOfReviews: 324,
+//   },
+//   {
+//     id: 6,
+//     category: 1,
+//     name: "Smart watch",
+//     img_url: "img/product-6.jpg",
+//     mrp: 549,
+//     price: 499,
+//     reviewStar: 3,
+//     noOfReviews: 152,
+//   },
+//   {
+//     id: 7,
+//     category: 2,
+//     name: "Top",
+//     img_url: "img/product-7.jpg",
+//     mrp: 99,
+//     price: 79,
+//     reviewStar: 5,
+//     noOfReviews: 1286,
+//   },
+//   {
+//     id: 8,
+//     category: 5,
+//     name: "Face wash",
+//     img_url: "img/product-8.jpg",
+//     mrp: 49,
+//     price: 39,
+//     reviewStar: 2,
+//     noOfReviews: 1624,
+//   },
+// ];
+
+// const category = [
+//   {
+//     id: 1,
+//     categoryName: "Clothing",
+//     img_url: "img/cat-1.jpg",
+//     noOfProducts: "12000",
+//   },
+//   {
+//     id: 2,
+//     categoryName: "Electronics",
+//     img_url: "img/cat-2.jpg",
+//     noOfProducts: "10000",
+//   },
+//   {
+//     id: 3,
+//     categoryName: "Footwear",
+//     img_url: "img/cat-3.jpg",
+//     noOfProducts: "9500",
+//   },
+//   {
+//     id: 4,
+//     categoryName: "Personal care",
+//     img_url: "img/cat-4.jpg",
+//     noOfProducts: "15000",
+//   },
+//   {
+//     id: 5,
+//     categoryName: "Personal care",
+//     img_url: "img/cat-4.jpg",
+//     noOfProducts: "15000",
+//   },
+//   {
+//     id: 6,
+//     categoryName: "Footwear",
+//     img_url: "img/cat-3.jpg",
+//     noOfProducts: "8500",
+//   },
+//   {
+//     id: 7,
+//     categoryName: "Electronics",
+//     img_url: "img/cat-2.jpg",
+//     noOfProducts: "650",
+//   },
+//   {
+//     id: 8,
+//     categoryName: "Clothing",
+//     img_url: "img/cat-1.jpg",
+//     noOfProducts: "14000",
+//   },
+//   {
+//     id: 9,
+//     categoryName: "Electronics",
+//     img_url: "img/cat-2.jpg",
+//     noOfProducts: "12000",
+//   },
+//   {
+//     id: 10,
+//     categoryName: "Footwear",
+//     img_url: "img/cat-3.jpg",
+//     noOfProducts: "12000",
+//   },
+//   {
+//     id: 11,
+//     categoryName: "Personal care",
+//     img_url: "img/cat-4.jpg",
+//     noOfProducts: "12000",
+//   },
+//   {
+//     id: 12,
+//     categoryName: "Clothing",
+//     img_url: "img/cat-1.jpg",
+//     noOfProducts: "1400",
+//   },
+// ];
+
+const formdata = [];
+
+var app = express();
+
+// view engine setup
+app.set("views", path.join(__dirname, "views"));
+app.set("view engine", "ejs");
+
+app.use(logger("dev"));
+app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
+app.use(cookieParser());
+app.use(express.static(path.join(__dirname, "public")));
+
+// app.use('/', indexRouter);
+// app.use('/users', usersRouter);
+
+app.get("/", async (req, res, next) => {
+  const products = await prodctModel.find()
+  const categories = await categoryModel.find()
+
+
+
+
+  res.render("index.ejs", { category: categories , product: products });
+  //  console.log(category)
+  
+});
+
+app.get("/addproduct", (req, res, next) => {
+  res.render("addproduct");
+});
+
+app.post("/addproductform", async (req, res, next) => {
+  var productdata = req.body;
+  const product = new prodctModel(productdata);             //adding data to database by taking input from user
+  await product.save();
+ 
+    res.redirect("/");
+
+  // add product details
+  // const newId = uuidv4()
+  // productdata["id"] = newId
+  // // productdata["id"] = Date.now();
+  // product.push(productdata);
+
+
+});
+
+// app.get("/adddata", async (req, res, next) => {
+// for(let i=0; i<product.length; i++){
+//   const products = new prodctModel(product[i]);  // temporary api to add product array data to database by add button in addproduct page
+//   await products.save();
+// }
+
+//   res.redirect("/");
+// })
+
+// app.get("/adddata", async (req, res, next) => {
+//   for(let i =0; i<category.length; i++) {
+//     const cat = new category1(category[i])
+//     await cat.save();
+//   }
+
+//   res.redirect("/");
+// })
+
+
+
+app.get("/backtohome", (req, res, next) => {
+  res.redirect("/");
+});
+
+app.get("/signup", (req, res, next) => {
+  res.render("signup",); //render to signup page
+});
+
+app.post("/submitform", async (req, res, next) => {
+  var fdata = req.body;
+  // const newId = uuidv4();                               // submit form details
+  // fdata["id"] = newId;
+
+  const form = new formModel(fdata);
+  await form.save();
+ 
+
+  res.render("index", { product, category });
+});
+
+
+
+app.get("/signin", (req, res, next) => {
+  console.log("signin========================")
+  res.render("signin",); // render to signin page
+});
+
+
+
+
+
+
+
+app.post("/user", (req, res, next) => {
+  var { email, password } = req.body;
+
+  var userobject = formdata.find( 
+    (user) => user.email == email && user.password == password
+  );
+  // console.log("===============================", userobject)  // let car = cars.find(car => car.color === "red");
+  if (userobject) {
+    res.render("user", { product, category, userobject }); // signin api
+  } else {
+    res.render("error", { product, category });
+  }
+});
+
+
+
+
+
+
+
+// catch 404 and forward to error handler
+app.use(function (req, res, next) {
+  next(createError(404));
+});
+
+
+
+
+
+
+
+// error handler
+app.use(function (err, req, res, next) {
+  // set locals, only providing error in development
+  res.locals.message = err.message;
+  res.locals.error = req.app.get("env") === "development" ? err : {};
+  console.log("=================================");
+  console.log(err);
+  // render the error page
+  res.status(err.status || 500);
+  res.send("err");
+});
+
+module.exports = app;
